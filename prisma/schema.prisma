@@ -1,9 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../src/generated/prisma"
@@ -12,4 +9,337 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+/// Organization represents a business entity in the mPOS system
+/// Each organization can have multiple users, products, and settings
+model Organization {
+  id         String   @id @default(cuid())
+  name       String
+  email      String   @unique
+  imageUrl   String?  @map("image_url")
+  address    String?
+  phone      String?
+  language   String?
+  themeColor String?  @map("theme_color")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  users     OrganizationUser[]
+  taxes     Tax[]
+  discounts Discount[]
+  loyalties Loyalty[]
+  receipts  Receipt[]
+  dues      Due[]
+  customers Customer[]
+  feedbacks CustomerFeedback[]
+  payments  Payment[]
+  invoices  Invoice[]
+
+  @@map("organizations")
+}
+
+/// User represents individuals who can access the system
+/// Users can be associated with multiple organizations with different roles
+model User {
+  id          String    @id @default(cuid())
+  name        String
+  email       String    @unique
+  imageUrl    String?   @map("image_url")
+  password    String
+  dateOfBirth DateTime? @map("date_of_birth")
+  gender      String?
+  address     String?
+  phone       String?
+  age         Int?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  organizations OrganizationUser[]
+  payments      Payment[]          @relation("CashierPayments")
+  invoices      Invoice[]          @relation("CashierInvoices")
+
+  @@map("users")
+}
+
+/// OrganizationUser is a junction table that manages the many-to-many relationship
+/// between organizations and users, including their role and employment details
+model OrganizationUser {
+  id             String   @id @default(cuid())
+  userId         String   @map("user_id")
+  organizationId String   @map("organization_id")
+  userRole       UserRole @map("user_role")
+  dateOfHire     DateTime @map("date_of_hire")
+  jobTitle       String   @map("job_title")
+  workSchedule   String   @map("work_schedule")
+  salary         Float
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user         User         @relation(fields: [userId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@unique([userId, organizationId])
+  @@map("organization_users")
+}
+
+/// Product represents items that can be sold through the POS system
+/// Each product belongs to a category and can have multiple discounts
+model Product {
+  id         String   @id @default(cuid())
+  name       String
+  categoryId String   @map("category_id")
+  brand      String?
+  size       String?
+  cost       Float
+  sell       Float
+  barcode    String   @unique
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  category     Category      @relation(fields: [categoryId], references: [id])
+  discounts    Discount[]
+  invoiceItems InvoiceItem[]
+
+  @@map("products")
+}
+
+/// Category helps organize products into logical groups
+/// Each category can contain multiple products
+model Category {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  products Product[]
+
+  @@map("categories")
+}
+
+/// Tax defines different tax rates that can be applied to sales
+/// Each organization can have multiple tax configurations
+model Tax {
+  id             String   @id @default(cuid())
+  name           String
+  value          Float
+  default        Boolean  @default(false)
+  organizationId String   @map("organization_id")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@map("taxes")
+}
+
+/// Discount represents promotional offers that can be applied to products
+/// Discounts have a validity period and can be specific to products and organizations
+model Discount {
+  id             String   @id @default(cuid())
+  name           String
+  value          Float
+  startDate      DateTime @map("start_date")
+  endDate        DateTime @map("end_date")
+  productId      String   @map("product_id")
+  organizationId String   @map("organization_id")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  product      Product      @relation(fields: [productId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@map("discounts")
+}
+
+/// Loyalty defines the reward system configuration
+/// Each organization can have multiple loyalty programs with different conversion rates
+model Loyalty {
+  id                     String   @id @default(cuid())
+  name                   String
+  amountRate             Float    @map("amount_rate")
+  conversionRatePoints   Float    @map("conversion_rate_points")
+  conversionRateDiscount Float    @map("conversion_rate_discount")
+  pointsExpiry           Int      @map("points_expiry")
+  default                Boolean  @default(false)
+  organizationId         String   @map("organization_id")
+  createdAt              DateTime @default(now()) @map("created_at")
+  updatedAt              DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@map("loyalties")
+}
+
+/// Receipt defines how receipts should be formatted and displayed
+/// Each organization can customize their receipt format
+model Receipt {
+  id                               String   @id @default(cuid())
+  name                             String
+  imageUrl                         String?  @map("image_url")
+  phone                            String?
+  address                          String?
+  dateTime                         DateTime @map("date_time")
+  itemDisplayFormatShowProductName Boolean  @map("item_display_format_show_product_name")
+  itemDisplayFormatShowQuantities  Boolean  @map("item_display_format_show_quantities")
+  itemDisplayFormatShowUnit        Boolean  @map("item_display_format_show_unit")
+  itemDisplayFormatShowDiscounts   Boolean  @map("item_display_format_show_discounts")
+  receiptTitle                     String   @map("receipt_title")
+  receiptNumbering                 String   @map("receipt_numbering")
+  thankNote                        String   @map("thank_note")
+  showCashierName                  Boolean  @map("show_cashier_name")
+  showCashierNameAndPhone          Boolean  @map("show_cashier_name_and_phone")
+  showCustomerDueBalance           Boolean  @map("show_customer_due_balance")
+  showTaxInformation               Boolean  @map("show_tax_information")
+  showPaymentMethod                Boolean  @map("show_payment_method")
+  showLoyaltyPoints                Boolean  @map("show_loyalty_points")
+  useAppLanguage                   Boolean  @map("use_app_language")
+  automaticReceiptPrint            Boolean  @map("automatic_receipt_print")
+  organizationId                   String   @map("organization_id")
+  createdAt                        DateTime @default(now()) @map("created_at")
+  updatedAt                        DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@map("receipts")
+}
+
+/// Due defines credit limits and conditions for customers
+/// Organizations can set multiple due configurations
+model Due {
+  id             String   @id @default(cuid())
+  name           String
+  minLoyalty     Float    @map("min_loyalty")
+  maxDue         Float    @map("max_due")
+  default        Boolean  @default(false)
+  organizationId String   @map("organization_id")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@map("dues")
+}
+
+/// Customer represents clients who make purchases
+/// Tracks purchase history, loyalty points, and due amounts
+model Customer {
+  id             String   @id @default(cuid())
+  name           String
+  phone          String
+  totalSpent     Float    @map("total_spent")
+  due            Float
+  loyaltyPoints  Float    @map("loyalty_points")
+  organizationId String   @map("organization_id")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id])
+  payments     Payment[]
+  invoices     Invoice[]
+
+  @@map("customers")
+}
+
+/// CustomerFeedback stores customer reviews and ratings
+/// Helps organizations track customer satisfaction
+model CustomerFeedback {
+  id             String   @id @default(cuid())
+  name           String
+  phone          String
+  rating         Int
+  feedback       String
+  organizationId String   @map("organization_id")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@map("customer_feedbacks")
+}
+
+/// Payment records financial transactions
+/// Links customers, invoices, and cashiers who processed the payment
+model Payment {
+  id             String   @id @default(cuid())
+  amount         Float
+  expectedAmount Float    @map("expected_amount")
+  method         String
+  newPayment     Boolean  @map("new_payment")
+  customerId     String   @map("customer_id")
+  invoiceId      String   @map("invoice_id")
+  cashierId      String   @map("cashier_id")
+  organizationId String   @map("organization_id")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  customer     Customer     @relation(fields: [customerId], references: [id])
+  invoice      Invoice      @relation(fields: [invoiceId], references: [id])
+  cashier      User         @relation("CashierPayments", fields: [cashierId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@map("payments")
+}
+
+/// Invoice represents a sales transaction
+/// Contains details about items sold, discounts applied, and payment status
+model Invoice {
+  id              String   @id @default(cuid())
+  total           Float
+  discount        Float
+  tax             Float
+  loyaltyDiscount Float    @map("loyalty_discount")
+  customerId      String   @map("customer_id")
+  cashierId       String   @map("cashier_id")
+  organizationId  String   @map("organization_id")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  customer     Customer      @relation(fields: [customerId], references: [id])
+  cashier      User          @relation("CashierInvoices", fields: [cashierId], references: [id])
+  organization Organization  @relation(fields: [organizationId], references: [id])
+  items        InvoiceItem[]
+  payments     Payment[]
+
+  @@map("invoices")
+}
+
+/// InvoiceItem represents individual items within an invoice
+/// Links products to invoices with quantity and price information
+model InvoiceItem {
+  id        String   @id @default(cuid())
+  quantity  Int
+  price     Float
+  invoiceId String   @map("invoice_id")
+  productId String   @map("product_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  invoice Invoice @relation(fields: [invoiceId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("invoice_items")
+}
+
+/// UserRole defines the possible roles a user can have in an organization
+/// ADMIN: Full access to organization settings and reports
+/// CASHIER: Can process sales and manage basic operations
+enum UserRole {
+  ADMIN
+  CASHIER
 }
