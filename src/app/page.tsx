@@ -1,10 +1,10 @@
-export default function Dashboard() {
+import { getUser } from "@/lib/auth";
+
+export default async function Dashboard() {
+  const user = await getUser();
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Dashboard</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {/* Add dashboard content here */}
-      </div>
+      <div>{user ? <p>Welcome, {user.name}!</p> : <p>Please log in</p>}</div>
     </div>
   );
 }
