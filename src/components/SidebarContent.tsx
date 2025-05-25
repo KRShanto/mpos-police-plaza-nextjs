@@ -1,50 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import {
-  BarChart3,
-  FileText,
-  Package,
-  Users,
-  UserCircle,
-  Settings,
-} from "lucide-react";
+import { LucideIcon } from "lucide-react";
 import { usePathname } from "next/navigation";
 
-const navItems = [
-  {
-    title: "Sales Summary",
-    icon: BarChart3,
-    href: "/",
-  },
-  {
-    title: "Sales Report",
-    icon: FileText,
-    href: "/report",
-  },
-  {
-    title: "Inventory Management",
-    icon: Package,
-    href: "/inventory",
-  },
-  {
-    title: "Employee Management",
-    icon: Users,
-    href: "/employee",
-  },
-  {
-    title: "Customer Management",
-    icon: UserCircle,
-    href: "/customer",
-  },
-  {
-    title: "Settings",
-    icon: Settings,
-    href: "/settings",
-  },
-];
+interface NavItem {
+  title: string;
+  icon: LucideIcon;
+  href: string;
+}
 
-export default function Sidebar() {
+interface SidebarContentProps {
+  navItems: NavItem[];
+}
+
+export default function SidebarContent({ navItems }: SidebarContentProps) {
   const pathname = usePathname() || "";
 
   return (
