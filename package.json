@@ -10,9 +10,13 @@
   },
   "dependencies": {
     "@prisma/client": "^6.8.2",
+    "@radix-ui/react-alert-dialog": "^1.1.14",
+    "@radix-ui/react-slot": "^1.2.3",
     "@types/bcryptjs": "^3.0.0",
     "@types/nodemailer": "^6.4.17",
     "bcryptjs": "^3.0.2",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "cookie": "^1.0.2",
     "jose": "^6.0.11",
     "jsonwebtoken": "^9.0.2",
@@ -20,7 +24,9 @@
     "next": "14.2.24",
     "nodemailer": "^7.0.3",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "tailwind-merge": "^3.3.0",
+    "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
     "@types/jsonwebtoken": "^9.0.9",
