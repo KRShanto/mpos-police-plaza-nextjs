@@ -14,6 +14,7 @@ const config: Config = {
         "bg-primary": "white",
         "bg-secondary": "#FFFAE6",
         "fg-primary": "#FF5F00",
+        "fg-secondary": "#ff8f4e",
       },
     },
   },
