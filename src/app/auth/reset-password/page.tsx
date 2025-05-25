@@ -1,25 +1,48 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
-export default function ForgetPassword() {
-  const [email, setEmail] = useState("");
+export default function ResetPassword() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token");
+
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  useEffect(() => {
+    if (!token) {
+      router.push("/auth/login");
+    }
+  }, [token, router]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters long");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/auth/forgot-password", {
+      const response = await fetch("/api/auth/reset-password", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ token, password }),
       });
 
       const data = await response.json();
@@ -29,25 +52,29 @@ export default function ForgetPassword() {
       }
 
       setSuccess(true);
+      setTimeout(() => {
+        router.push("/auth/login");
+      }, 3000);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to send reset email"
-      );
+      setError(err instanceof Error ? err.message : "Failed to reset password");
     } finally {
       setIsLoading(false);
     }
   };
+
+  if (!token) {
+    return null;
+  }
 
   if (success) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="p-8 bg-white rounded-lg shadow-md w-96 text-center">
           <h2 className="text-2xl font-bold text-green-600 mb-4">
-            Email Sent!
+            Password Reset Successful!
           </h2>
           <p className="text-gray-600">
-            If an account exists with this email, you will receive password
-            reset instructions.
+            Your password has been reset. Redirecting to login...
           </p>
         </div>
       </div>
@@ -58,24 +85,43 @@ export default function ForgetPassword() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="p-8 bg-white rounded-lg shadow-md w-96">
         <h1 className="text-2xl font-bold mb-6 text-gray-900">
-          Forgot Password
+          Reset Password
         </h1>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label
-              htmlFor="email"
+              htmlFor="password"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              Email Address
+              New Password
             </label>
             <input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="password"
+              id="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
               disabled={isLoading}
+              minLength={8}
+            />
+          </div>
+          <div className="mb-4">
+            <label
+              htmlFor="confirmPassword"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Confirm Password
+            </label>
+            <input
+              type="password"
+              id="confirmPassword"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+              disabled={isLoading}
+              minLength={8}
             />
           </div>
           {error && <div className="mb-4 text-sm text-red-600">{error}</div>}
@@ -86,7 +132,7 @@ export default function ForgetPassword() {
               isLoading ? "opacity-50 cursor-not-allowed" : ""
             }`}
           >
-            {isLoading ? "Sending..." : "Send Reset Link"}
+            {isLoading ? "Resetting..." : "Reset Password"}
           </button>
         </form>
       </div>

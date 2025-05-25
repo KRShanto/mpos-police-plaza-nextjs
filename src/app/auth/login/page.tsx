@@ -1,10 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 
 export default function LoginPage() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [formData, setFormData] = useState({
     email: "",
@@ -43,7 +42,7 @@ export default function LoginPage() {
       }
 
       // Redirect to dashboard on successful login
-      router.push("/");
+      window.location.href = "/";
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message || "An error occurred during login");
@@ -116,7 +115,7 @@ export default function LoginPage() {
 
           <div className="flex justify-between items-center mt-4">
             <a
-              href="/auth/forgot-password"
+              href="/auth/forget-password"
               className="text-[#4facfe] text-sm hover:underline"
             >
               Forget Password?
