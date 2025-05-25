@@ -23,7 +23,7 @@ export default function Template({ children, user }: TemplateProps) {
     <div className="flex h-screen">
       {user && <Sidebar user={user} />}
       <div className="flex-1 flex flex-col">
-        <Navbar />
+        {user && <Navbar user={user} />}
         <main className="flex-1 p-6 overflow-auto">{children}</main>
       </div>
     </div>

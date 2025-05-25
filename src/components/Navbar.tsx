@@ -1,7 +1,8 @@
 import Image from "next/image";
 import { Bell } from "lucide-react";
+import { AuthUser } from "@/lib/auth";
 
-export default function Navbar() {
+export default function Navbar({ user }: { user: AuthUser }) {
   return (
     <nav className="h-16 bg-bg-secondary flex items-center justify-between px-4">
       <div className="flex items-center gap-4">
@@ -29,8 +30,8 @@ export default function Navbar() {
             />
           </div>
           <div>
-            <div className="font-medium">Fahim Ahmed</div>
-            <div className="text-sm text-gray-500">Admin</div>
+            <div className="font-medium">{user.name}</div>
+            <div className="text-sm text-gray-500">{user.role}</div>
           </div>
         </div>
       </div>
