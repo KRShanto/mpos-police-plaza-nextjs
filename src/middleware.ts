@@ -4,7 +4,6 @@ import { verifyJWT } from "./lib/jwt";
 
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
-  console.log("Path:", path);
 
   // Define public paths that don't require authentication
   const isPublicPath = path.startsWith("/auth/");
@@ -17,22 +16,14 @@ export async function middleware(request: NextRequest) {
 
   // Get token from cookies using request.cookies
   const token = request.cookies.get("token")?.value;
-  console.log("Received token:", token ? "present" : "undefined");
 
   // For public paths (login, register, etc.)
   if (isPublicPath) {
     // If user is logged in, redirect to dashboard
     if (token) {
-      console.log("Token found on public path");
       try {
-        console.log("Attempting to verify token...");
         const payload = await verifyJWT(token);
-        console.log(
-          "Token verification result:",
-          payload ? "valid" : "invalid"
-        );
         if (payload) {
-          console.log("Redirecting to home...");
           const response = NextResponse.redirect(new URL("/", request.url));
           // Preserve the token in the response
           response.cookies.set("token", token, {
@@ -62,7 +53,6 @@ export async function middleware(request: NextRequest) {
 
   // Verify token for protected paths
   try {
-    console.log("Verifying token for protected path");
     const payload = await verifyJWT(token);
     if (!payload) {
       return NextResponse.redirect(new URL("/auth/login", request.url));
