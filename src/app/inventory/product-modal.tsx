@@ -7,13 +7,26 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Category, Product } from "@/generated/prisma";
 import { ImagePlus, Loader2, X, Pencil, Trash } from "lucide-react";
 import Image from "next/image";
 import { useRef, useState, useEffect } from "react";
-import { createProduct, updateProduct } from "@/actions/product";
+import { createProduct } from "@/actions/create-product";
+import { updateProduct } from "@/actions/update-product";
+import { deleteProduct } from "@/actions/delete-product";
 
 type Mode = "view" | "create" | "edit";
 
@@ -30,6 +43,7 @@ export function ProductModal({
   open,
   onOpenChange,
   product,
+  onDelete,
 }: ProductModalProps) {
   const [loading, setLoading] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -117,8 +131,21 @@ export function ProductModal({
   };
 
   const handleDelete = async () => {
-    // Delete functionality disabled
-    console.log("Delete functionality is currently disabled");
+    if (!product || !onDelete) return;
+
+    setLoading(true);
+    try {
+      const result = await deleteProduct(product.id);
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+      onDelete();
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Error deleting product:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const renderField = (
@@ -255,16 +282,44 @@ export function ProductModal({
                   <Pencil className="w-4 h-4" />
                   Edit
                 </Button>
-                <Button
-                  type="button"
-                  variant="destructive"
-                  onClick={handleDelete}
-                  disabled={loading}
-                  className="w-full flex items-center justify-center gap-2"
-                >
-                  <Trash className="w-4 h-4" />
-                  Delete
-                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      disabled={loading}
+                      className="w-full flex items-center justify-center gap-2"
+                    >
+                      <Trash className="w-4 h-4" />
+                      Delete
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>
+                        Are you absolutely sure?
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This action cannot be undone. This will permanently
+                        delete the product &quot;{product?.name}&quot; and
+                        remove all associated data from our servers.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleDelete}
+                        disabled={loading}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        {loading && (
+                          <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                        )}
+                        Delete Product
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </>
             ) : (
               <Button

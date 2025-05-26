@@ -68,7 +68,10 @@ export function ProductList({ products }: ProductListProps) {
           }
         }}
         product={selectedProduct || undefined}
-        onDelete={() => setSelectedProduct(null)}
+        onDelete={() => {
+          setSelectedProduct(null);
+          // The page will automatically refresh due to revalidatePath in the delete action
+        }}
       />
     </>
   );
