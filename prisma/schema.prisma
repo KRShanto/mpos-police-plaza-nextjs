@@ -109,7 +109,7 @@ model OrganizationUser {
 model Product {
   id             String   @id @default(cuid())
   name           String
-  categoryId     String   @map("category_id")
+  categoryId     String?  @map("category_id")
   brand          String?
   size           String?
   cost           Float
@@ -122,7 +122,7 @@ model Product {
   updatedAt      DateTime @updatedAt @map("updated_at")
 
   // Relations
-  category     Category      @relation(fields: [categoryId], references: [id])
+  category     Category?     @relation(fields: [categoryId], references: [id])
   discounts    Discount[]
   invoiceItems InvoiceItem[]
   organization Organization  @relation(fields: [organizationId], references: [id])

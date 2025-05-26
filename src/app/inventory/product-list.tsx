@@ -1,38 +1,38 @@
 "use client";
 
+import { Product } from "@/generated/prisma";
 import { useState } from "react";
 import { ProductDetails } from "./product-details";
-import { Product, Category } from "@/generated/prisma";
 import { ProductCard } from "./product-card";
+import { Category } from "@/generated/prisma";
 
 interface ProductListProps {
-  products: (Product & { category: Category })[];
+  products: (Product & {
+    category: Category | null;
+  })[];
 }
 
 export function ProductList({ products }: ProductListProps) {
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<
+    (Product & { category: Category | null }) | null
+  >(null);
 
   return (
     <>
-      {/* Products grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {products.map((product) => (
           <ProductCard
             key={product.id}
             product={product}
-            onSeeDetails={(product) => {
-              setSelectedProduct(product);
-              setIsDetailsOpen(true);
-            }}
+            onSeeDetails={() => setSelectedProduct(product)}
           />
         ))}
       </div>
 
       <ProductDetails
         product={selectedProduct}
-        isOpen={isDetailsOpen}
-        onClose={() => setIsDetailsOpen(false)}
+        isOpen={!!selectedProduct}
+        onClose={() => setSelectedProduct(null)}
       />
     </>
   );

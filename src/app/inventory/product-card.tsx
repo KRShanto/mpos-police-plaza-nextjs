@@ -1,11 +1,10 @@
 "use client";
 
-import { Product } from "@/generated/prisma";
+import { Category, Product } from "@/generated/prisma";
 import { ChevronRight } from "lucide-react";
-import Image from "next/image";
 
 interface ProductCardProps {
-  product: Product;
+  product: Product & { category: Category | null };
   onSeeDetails: (product: Product) => void;
 }
 
@@ -14,12 +13,11 @@ export function ProductCard({ product, onSeeDetails }: ProductCardProps) {
     <div className="rounded-lg overflow-hidden shadow-[0_3px_10px_rgb(0,0,0,0.2)]">
       <div className="p-4">
         <div className="w-full h-40 bg-bg-secondary rounded-lg mb-4 overflow-hidden">
-          <Image
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
             src={product.imageUrl || ""}
             alt={product.name}
             className="w-full h-full object-cover"
-            width={100}
-            height={100}
           />
         </div>
         <h3 className="font-medium mb-2">{product.name}</h3>

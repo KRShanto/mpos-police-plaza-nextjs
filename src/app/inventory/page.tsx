@@ -12,6 +12,9 @@ export default async function Inventory() {
     include: {
       category: true,
     },
+    orderBy: {
+      createdAt: "desc",
+    },
   });
   const categories = await prisma.category.findMany({
     where: {
