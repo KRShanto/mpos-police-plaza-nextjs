@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { X, Pencil, Trash } from "lucide-react";
 import Image from "next/image";
-import { Product } from "./product-card";
+import { Product } from "@/generated/prisma";
 
 interface ProductDetailsProps {
   product: Product | null;
@@ -35,7 +35,7 @@ export function ProductDetails({
         <div className="p-6 space-y-4">
           <div className="w-full h-48 bg-bg-secondary rounded-lg overflow-hidden mb-4">
             <Image
-              src={product.image}
+              src={product.imageUrl || ""}
               alt={product.name}
               className="w-full h-full object-cover"
               width={100}
@@ -92,7 +92,7 @@ export function ProductDetails({
             <div>
               <label className="text-sm text-gray-500 block mb-1">Stock</label>
               <div className="px-3 py-2 rounded-md bg-gray-100 text-gray-900">
-                {product.stock}
+                {product.quantity}
               </div>
             </div>
           </div>

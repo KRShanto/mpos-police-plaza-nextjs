@@ -8,8 +8,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Category } from "@/generated/prisma";
+import { Plus } from "lucide-react";
 
-export function InventoryHeader() {
+interface InventoryHeaderProps {
+  categories: Category[];
+}
+
+export function InventoryHeader({ categories }: InventoryHeaderProps) {
   return (
     <div className="flex justify-end items-center gap-4 mb-6">
       <Select defaultValue="all">
@@ -23,51 +29,21 @@ export function InventoryHeader() {
           >
             All Categories
           </SelectItem>
-          <SelectItem
-            value="tops"
-            className="text-base hover:opacity-80 focus:opacity-80 cursor-pointer"
-          >
-            Tops
-          </SelectItem>
-          <SelectItem
-            value="bottoms"
-            className="text-base hover:opacity-80 focus:opacity-80 cursor-pointer"
-          >
-            Bottoms
-          </SelectItem>
-          <SelectItem
-            value="dresses"
-            className="text-base hover:opacity-80 focus:opacity-80 cursor-pointer"
-          >
-            Dresses
-          </SelectItem>
-          <SelectItem
-            value="outerwear"
-            className="text-base hover:opacity-80 focus:opacity-80 cursor-pointer"
-          >
-            Outerwear
-          </SelectItem>
-          <SelectItem
-            value="accessories"
-            className="text-base hover:opacity-80 focus:opacity-80 cursor-pointer"
-          >
-            Accessories
-          </SelectItem>
-          <SelectItem
-            value="footwear"
-            className="text-base hover:opacity-80 focus:opacity-80 cursor-pointer"
-          >
-            Footwear
-          </SelectItem>
-          <SelectItem
-            value="activewear"
-            className="text-base hover:opacity-80 focus:opacity-80 cursor-pointer"
-          >
-            Activewear
-          </SelectItem>
+          {categories.map((category) => (
+            <SelectItem
+              key={category.id}
+              value={category.id}
+              className="text-base hover:opacity-80 focus:opacity-80 cursor-pointer"
+            >
+              {category.name}
+            </SelectItem>
+          ))}
         </SelectContent>
       </Select>
-      <Button>Add Product</Button>
+      <Button className="gap-2">
+        <Plus className="h-5 w-5" />
+        Add Product
+      </Button>
     </div>
   );
 }

@@ -26,16 +26,18 @@ model Organization {
   updatedAt  DateTime @updatedAt @map("updated_at")
 
   // Relations
-  users     OrganizationUser[]
-  taxes     Tax[]
-  discounts Discount[]
-  loyalties Loyalty[]
-  receipts  Receipt[]
-  dues      Due[]
-  customers Customer[]
-  feedbacks CustomerFeedback[]
-  payments  Payment[]
-  invoices  Invoice[]
+  users      OrganizationUser[]
+  taxes      Tax[]
+  discounts  Discount[]
+  loyalties  Loyalty[]
+  receipts   Receipt[]
+  dues       Due[]
+  customers  Customer[]
+  feedbacks  CustomerFeedback[]
+  payments   Payment[]
+  invoices   Invoice[]
+  products   Product[]
+  categories Category[]
 
   @@map("organizations")
 }
@@ -105,21 +107,25 @@ model OrganizationUser {
 /// Product represents items that can be sold through the POS system
 /// Each product belongs to a category and can have multiple discounts
 model Product {
-  id         String   @id @default(cuid())
-  name       String
-  categoryId String   @map("category_id")
-  brand      String?
-  size       String?
-  cost       Float
-  sell       Float
-  barcode    String   @unique
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
+  id             String   @id @default(cuid())
+  name           String
+  categoryId     String   @map("category_id")
+  brand          String?
+  size           String?
+  cost           Float
+  sell           Float
+  quantity       Int      @default(0)
+  imageUrl       String?  @map("image_url")
+  barcode        String   @unique
+  organizationId String   @map("organization_id")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
 
   // Relations
   category     Category      @relation(fields: [categoryId], references: [id])
   discounts    Discount[]
   invoiceItems InvoiceItem[]
+  organization Organization  @relation(fields: [organizationId], references: [id])
 
   @@map("products")
 }
@@ -127,13 +133,15 @@ model Product {
 /// Category helps organize products into logical groups
 /// Each category can contain multiple products
 model Category {
-  id        String   @id @default(cuid())
-  name      String
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id             String   @id @default(cuid())
+  name           String
+  organizationId String   @map("organization_id")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
 
   // Relations
-  products Product[]
+  products     Product[]
+  organization Organization @relation(fields: [organizationId], references: [id])
 
   @@map("categories")
 }

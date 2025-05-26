@@ -1,20 +1,8 @@
 "use client";
 
+import { Product } from "@/generated/prisma";
 import { ChevronRight } from "lucide-react";
 import Image from "next/image";
-
-export interface Product {
-  id: string;
-  name: string;
-  brand: string;
-  categoryId: string;
-  size: string;
-  cost: number;
-  sell: number;
-  barcode: string;
-  stock: number;
-  image: string;
-}
 
 interface ProductCardProps {
   product: Product;
@@ -27,7 +15,7 @@ export function ProductCard({ product, onSeeDetails }: ProductCardProps) {
       <div className="p-4">
         <div className="w-full h-40 bg-bg-secondary rounded-lg mb-4 overflow-hidden">
           <Image
-            src={product.image}
+            src={product.imageUrl || ""}
             alt={product.name}
             className="w-full h-full object-cover"
             width={100}
@@ -39,7 +27,7 @@ export function ProductCard({ product, onSeeDetails }: ProductCardProps) {
         <div className="flex justify-between items-center">
           <div className="font-semibold text-fg-primary">{product.sell} TK</div>
           <div className="text-sm bg-[#E8F2EF] text-[#1C494C] px-2 py-1 rounded">
-            {product.stock} Left
+            {product.quantity} Left
           </div>
         </div>
       </div>

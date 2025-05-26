@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Product, ProductCard } from "./product-card";
 import { ProductDetails } from "./product-details";
+import { Product, Category } from "@/generated/prisma";
+import { ProductCard } from "./product-card";
 
 interface ProductListProps {
-  products: Product[];
+  products: (Product & { category: Category })[];
 }
 
 export function ProductList({ products }: ProductListProps) {
