@@ -43,7 +43,7 @@ export async function updateProduct(
       });
     }
 
-    const product = await prisma.product.update({
+    const updatedProduct = await prisma.product.update({
       where: {
         id: productId,
         organizationId: user.organization.id,
@@ -62,7 +62,7 @@ export async function updateProduct(
     });
 
     revalidatePath("/inventory");
-    return { success: true, product };
+    return { success: true, product: updatedProduct };
   } catch (error) {
     console.error("Error updating product:", error);
     return { success: false, error: "Failed to update product" };

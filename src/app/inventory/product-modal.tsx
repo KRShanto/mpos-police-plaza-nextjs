@@ -27,6 +27,7 @@ import { useRef, useState, useEffect } from "react";
 import { createProduct } from "@/actions/create-product";
 import { updateProduct } from "@/actions/update-product";
 import { deleteProduct } from "@/actions/delete-product";
+import { deleteTemporaryImage } from "@/actions/delete-temporary-image";
 
 type Mode = "view" | "create" | "edit";
 
@@ -36,6 +37,7 @@ interface ProductModalProps {
   onOpenChange: (open: boolean) => void;
   product?: Product & { category: Category | null };
   onDelete?: () => void;
+  onInitiateEdit?: () => void;
 }
 
 export function ProductModal({
@@ -44,16 +46,20 @@ export function ProductModal({
   onOpenChange,
   product,
   onDelete,
+  onInitiateEdit,
 }: ProductModalProps) {
   const [loading, setLoading] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [selectedFileForUpload, setSelectedFileForUpload] =
+    useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
   const isReadOnly = mode === "view";
 
-  // Reset image preview when product changes
   useEffect(() => {
     setImagePreview(product?.imageUrl || null);
-  }, [product]);
+    setSelectedFileForUpload(null);
+  }, [product, open]);
 
   const handleImageClick = () => {
     if (isReadOnly) return;
@@ -62,54 +68,70 @@ export function ProductModal({
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      setSelectedFileForUpload(null);
+      setImagePreview(product?.imageUrl || null);
+      return;
+    }
 
-    // Create preview
+    setSelectedFileForUpload(file);
     const reader = new FileReader();
     reader.onloadend = () => {
       setImagePreview(reader.result as string);
     };
     reader.readAsDataURL(file);
-
-    // Prepare form data for upload
-    const formData = new FormData();
-    formData.append("image", file);
-
-    try {
-      setLoading(true);
-      const response = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to upload image");
-      }
-
-      const data = await response.json();
-      setImagePreview(data.path);
-    } catch (error) {
-      console.error("Error uploading image:", error);
-    } finally {
-      setLoading(false);
-    }
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!formRef.current) {
+      console.error("Form reference is not available.");
+      setLoading(false);
+      return;
+    }
     setLoading(true);
 
-    const formData = new FormData(e.currentTarget);
+    let uploadedImageUrl: string | null | undefined = product?.imageUrl;
+    if (mode === "create") uploadedImageUrl = null;
+
+    if (selectedFileForUpload) {
+      const formDataUpload = new FormData();
+      formDataUpload.append("image", selectedFileForUpload);
+
+      try {
+        const response = await fetch("/api/upload", {
+          method: "POST",
+          body: formDataUpload,
+        });
+        if (!response.ok) throw new Error("Image upload failed");
+        const uploadData = await response.json();
+        uploadedImageUrl = uploadData.path;
+
+        if (
+          mode === "edit" &&
+          product?.imageUrl &&
+          product.imageUrl !== uploadedImageUrl
+        ) {
+          await deleteTemporaryImage(product.imageUrl);
+        }
+      } catch (error) {
+        console.error("Error during image upload process:", error);
+        setLoading(false);
+        return;
+      }
+    }
+
+    const submittedFormData = new FormData(formRef.current);
     const productData = {
-      name: formData.get("name") as string,
-      category: formData.get("category") as string,
-      brand: formData.get("brand") as string,
-      size: formData.get("size") as string,
-      cost: Number(formData.get("cost")),
-      sell: Number(formData.get("sell")),
-      barcode: formData.get("barcode") as string,
-      quantity: Number(formData.get("stock")),
-      imageUrl: imagePreview,
+      name: submittedFormData.get("name") as string,
+      category: submittedFormData.get("category") as string,
+      brand: submittedFormData.get("brand") as string | undefined,
+      size: submittedFormData.get("size") as string | undefined,
+      cost: Number(submittedFormData.get("cost")),
+      sell: Number(submittedFormData.get("sell")),
+      barcode: submittedFormData.get("barcode") as string,
+      quantity: Number(submittedFormData.get("stock")),
+      imageUrl: uploadedImageUrl,
     };
 
     try {
@@ -118,10 +140,9 @@ export function ProductModal({
           ? await updateProduct(product.id, productData)
           : await createProduct(productData);
 
-      if (!result.success) {
-        throw new Error(result.error);
-      }
+      if (!result.success) throw new Error(result.error as string);
 
+      setSelectedFileForUpload(null);
       onOpenChange(false);
     } catch (error) {
       console.error("Error saving product:", error);
@@ -146,6 +167,14 @@ export function ProductModal({
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleModalOpenChange = (isOpen: boolean) => {
+    if (!isOpen) {
+      setSelectedFileForUpload(null);
+      setImagePreview(product?.imageUrl || null);
+    }
+    onOpenChange(isOpen);
   };
 
   const renderField = (
@@ -192,7 +221,7 @@ export function ProductModal({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleModalOpenChange}>
       <DialogContent className="max-w-[500px] p-0 overflow-hidden" hideClose>
         <DialogHeader className="bg-fg-secondary p-6 rounded-t-lg">
           <DialogTitle className="text-xl font-semibold text-center w-full">
@@ -204,7 +233,7 @@ export function ProductModal({
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form ref={formRef} onSubmit={handleSubmit} className="p-6 space-y-4">
           {/* Image and Name Section */}
           <div className="flex gap-4">
             <div
@@ -274,8 +303,7 @@ export function ProductModal({
                 <Button
                   type="button"
                   onClick={() => {
-                    onOpenChange(false);
-                    // Here you would typically set the mode to "edit" in the parent component
+                    onInitiateEdit?.();
                   }}
                   className="w-full flex items-center justify-center gap-2"
                 >
