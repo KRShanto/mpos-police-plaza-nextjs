@@ -118,3 +118,16 @@ export async function updateProduct(id: string, data: ProductData) {
     return { success: false, error: "Failed to update product" };
   }
 }
+
+export async function deleteProduct(id: string) {
+  try {
+    await prisma.product.delete({
+      where: { id },
+    });
+    revalidatePath("/inventory");
+    return { success: true };
+  } catch (error) {
+    console.error("Error deleting product:", error);
+    return { success: false, error: "Failed to delete product" };
+  }
+}

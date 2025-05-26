@@ -16,6 +16,7 @@ export default async function Inventory() {
       createdAt: "desc",
     },
   });
+
   const categories = await prisma.category.findMany({
     where: {
       organizationId: user?.organization.id,
