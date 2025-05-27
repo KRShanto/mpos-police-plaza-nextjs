@@ -10,8 +10,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ImagePlus, X } from "lucide-react";
-import { useState, useRef } from "react";
+import { ImagePlus, Loader2, X } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
 import {
   Select,
   SelectContent,
@@ -20,13 +20,25 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import Image from "next/image";
+import { updateProfile } from "@/actions/profile-update";
+import { deleteTemporaryImage } from "@/actions/delete-temporary-image";
+import { User } from "@/generated/prisma";
 
-export function ProfileDialogContent() {
+export function ProfileDialogContent({ user }: { user: User }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(
+    user.imageUrl
+  );
+  const [selectedFileForUpload, setSelectedFileForUpload] =
+    useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    setImagePreview(user.imageUrl);
+    setSelectedFileForUpload(null);
+  }, [user, open]);
 
   const handleImageClick = () => {
     fileInputRef.current?.click();
@@ -35,9 +47,11 @@ export function ProfileDialogContent() {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) {
-      setImagePreview(null);
+      setSelectedFileForUpload(null);
+      setImagePreview(user.imageUrl);
       return;
     }
+    setSelectedFileForUpload(file);
     const reader = new FileReader();
     reader.onloadend = () => {
       setImagePreview(reader.result as string);
@@ -47,14 +61,69 @@ export function ProfileDialogContent() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!formRef.current) {
+      console.error("Form reference is not available.");
+      return;
+    }
     setLoading(true);
-    // TODO: Implement profile update logic
-    setLoading(false);
-    setOpen(false);
+
+    try {
+      let uploadedImageUrl: string | null = user.imageUrl;
+
+      if (selectedFileForUpload) {
+        const formDataUpload = new FormData();
+        formDataUpload.append("image", selectedFileForUpload);
+
+        try {
+          const response = await fetch("/api/upload", {
+            method: "POST",
+            body: formDataUpload,
+          });
+          if (!response.ok) throw new Error("Image upload failed");
+          const uploadData = await response.json();
+          uploadedImageUrl = uploadData.path;
+
+          // Delete previous image if exists and new image is uploaded
+          if (user.imageUrl && user.imageUrl !== uploadedImageUrl) {
+            await deleteTemporaryImage(user.imageUrl);
+          }
+        } catch (error) {
+          console.error("Error during image upload:", error);
+          setLoading(false);
+          return;
+        }
+      }
+
+      const formData = new FormData(formRef.current);
+      if (uploadedImageUrl) {
+        formData.append("imageUrl", uploadedImageUrl);
+      }
+
+      const result = await updateProfile(formData);
+
+      if (result.error) {
+        throw new Error(result.error);
+      }
+
+      setSelectedFileForUpload(null);
+      setOpen(false);
+    } catch (error) {
+      console.error("Error updating profile:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleModalOpenChange = (isOpen: boolean) => {
+    if (!isOpen) {
+      setSelectedFileForUpload(null);
+      setImagePreview(user.imageUrl);
+    }
+    setOpen(isOpen);
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleModalOpenChange}>
       <DialogTrigger asChild>
         <div className="w-full bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow cursor-pointer flex flex-col items-center justify-center">
           <div className="text-4xl mb-3">👤</div>
@@ -110,6 +179,7 @@ export function ProfileDialogContent() {
                   name="name"
                   placeholder="Enter your full name"
                   required
+                  defaultValue={user.name}
                 />
               </div>
             </div>
@@ -117,11 +187,20 @@ export function ProfileDialogContent() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="dateOfBirth">Date of Birth</Label>
-                <Input id="dateOfBirth" name="dateOfBirth" type="date" />
+                <Input
+                  id="dateOfBirth"
+                  name="dateOfBirth"
+                  type="date"
+                  defaultValue={
+                    user.dateOfBirth
+                      ? user.dateOfBirth.toISOString().split("T")[0]
+                      : ""
+                  }
+                />
               </div>
               <div>
                 <Label htmlFor="gender">Gender</Label>
-                <Select name="gender">
+                <Select name="gender" defaultValue={user.gender || "other"}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select gender" />
                   </SelectTrigger>
@@ -140,6 +219,7 @@ export function ProfileDialogContent() {
                 id="address"
                 name="address"
                 placeholder="Enter your address"
+                defaultValue={user.address || ""}
               />
             </div>
 
@@ -151,6 +231,7 @@ export function ProfileDialogContent() {
                   name="phone"
                   type="tel"
                   placeholder="Enter your phone number"
+                  defaultValue={user.phone || ""}
                 />
               </div>
               <div>
@@ -161,6 +242,7 @@ export function ProfileDialogContent() {
                   type="number"
                   min="0"
                   placeholder="Enter your age"
+                  defaultValue={user.age || ""}
                 />
               </div>
             </div>
@@ -173,6 +255,7 @@ export function ProfileDialogContent() {
                 type="email"
                 placeholder="Enter your email"
                 required
+                defaultValue={user.email}
               />
             </div>
           </form>
@@ -181,7 +264,7 @@ export function ProfileDialogContent() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => setOpen(false)}
+              onClick={() => handleModalOpenChange(false)}
               className="w-full flex items-center justify-center gap-2"
             >
               <X className="w-4 h-4" /> Cancel
@@ -195,6 +278,7 @@ export function ProfileDialogContent() {
                 formRef.current?.requestSubmit();
               }}
             >
+              {loading && <Loader2 className="w-4 h-4 animate-spin" />}
               Save Changes
             </Button>
           </div>

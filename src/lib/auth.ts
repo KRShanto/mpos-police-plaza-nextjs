@@ -24,6 +24,7 @@ export async function getUser() {
         id: true,
         email: true,
         name: true,
+        imageUrl: true,
         organizations: {
           select: {
             userRole: true,
@@ -49,6 +50,7 @@ export async function getUser() {
       id: user.id,
       email: user.email,
       name: user.name,
+      imageUrl: user.imageUrl,
       role: user.organizations[0]?.userRole || "CASHIER",
       organization: user.organizations[0]?.organization || null,
       createdAt: user.createdAt,

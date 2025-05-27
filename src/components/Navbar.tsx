@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { Bell, LogOut } from "lucide-react";
+import { Bell, LogOut, User } from "lucide-react";
 import { AuthUser } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import {
@@ -50,14 +50,18 @@ export default function Navbar({ user }: { user: AuthUser }) {
           <Bell className="w-6 h-6" />
         </button>
         <div className="flex items-center gap-2">
-          <div className="w-10 h-10 bg-gray-200 rounded-full overflow-hidden">
-            <Image
-              src="/placeholder-avatar.jpg"
-              alt="Profile"
-              width={40}
-              height={40}
-              className="object-cover"
-            />
+          <div className="w-10 h-10 bg-gray-200 rounded-full overflow-hidden flex items-center justify-center">
+            {user.imageUrl ? (
+              <Image
+                src={user.imageUrl}
+                alt="Profile"
+                width={40}
+                height={40}
+                className="object-cover"
+              />
+            ) : (
+              <User className="w-6 h-6 text-gray-500" />
+            )}
           </div>
           <div>
             <div className="font-medium">{user.name}</div>
