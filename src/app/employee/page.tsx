@@ -1,10 +1,20 @@
-export default function Employee() {
-  return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Employee Management</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Add employee management content here */}
-      </div>
-    </div>
-  );
+import { prisma } from "@/lib/db";
+import { getUser } from "@/lib/auth";
+import EmployeeClientPage from "./employee-client";
+
+export default async function Employee() {
+  const user = await getUser();
+  const employees = await prisma.organizationUser.findMany({
+    where: {
+      organizationId: user?.organization.id,
+    },
+    include: {
+      user: true,
+    },
+    orderBy: {
+      createdAt: "asc",
+    },
+  });
+
+  return <EmployeeClientPage employees={employees} />;
 }
