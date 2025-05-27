@@ -3,6 +3,7 @@ import { Poppins } from "next/font/google";
 import "./globals.css";
 import Template from "../components/Template";
 import { getUser } from "@/lib/auth";
+import { Toaster } from "sonner";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -25,6 +26,7 @@ export default async function RootLayout({
     <html lang="en">
       <body className={poppins.className}>
         <Template user={user}>{children}</Template>
+        <Toaster richColors />
       </body>
     </html>
   );
