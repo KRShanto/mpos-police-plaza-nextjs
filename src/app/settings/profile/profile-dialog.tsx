@@ -32,6 +32,9 @@ export function ProfileDialogContent({ user }: { user: User }) {
   );
   const [selectedFileForUpload, setSelectedFileForUpload] =
     useState<File | null>(null);
+  const [calculatedAge, setCalculatedAge] = useState<number | null>(
+    user.age || null
+  );
   const fileInputRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -39,6 +42,32 @@ export function ProfileDialogContent({ user }: { user: User }) {
     setImagePreview(user.imageUrl);
     setSelectedFileForUpload(null);
   }, [user, open]);
+
+  const calculateAge = (birthDate: string) => {
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birth.getDate())
+    ) {
+      age--;
+    }
+
+    return age;
+  };
+
+  const handleDateOfBirthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const dob = e.target.value;
+    if (dob) {
+      const age = calculateAge(dob);
+      setCalculatedAge(age);
+    } else {
+      setCalculatedAge(null);
+    }
+  };
 
   const handleImageClick = () => {
     fileInputRef.current?.click();
@@ -196,6 +225,7 @@ export function ProfileDialogContent({ user }: { user: User }) {
                       ? user.dateOfBirth.toISOString().split("T")[0]
                       : ""
                   }
+                  onChange={handleDateOfBirthChange}
                 />
               </div>
               <div>
@@ -242,7 +272,9 @@ export function ProfileDialogContent({ user }: { user: User }) {
                   type="number"
                   min="0"
                   placeholder="Enter your age"
-                  defaultValue={user.age || ""}
+                  value={calculatedAge || ""}
+                  readOnly
+                  className="bg-gray-50"
                 />
               </div>
             </div>
