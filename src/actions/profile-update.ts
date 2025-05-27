@@ -30,11 +30,16 @@ export async function updateProfile(formData: FormData) {
     imageUrl,
   };
 
-  await prisma.user.update({
-    where: { id: user.id },
-    data: updateData,
-  });
+  try {
+    await prisma.user.update({
+      where: { id: user.id },
+      data: updateData,
+    });
 
-  revalidatePath("/settings");
-  return { success: "Profile updated successfully" };
+    revalidatePath("/settings");
+    return { success: "Profile updated successfully" };
+  } catch (error) {
+    console.error("Error updating profile:", error);
+    return { error: "Failed to update profile" };
+  }
 }

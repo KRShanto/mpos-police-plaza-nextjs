@@ -23,6 +23,7 @@ import Image from "next/image";
 import { updateProfile } from "@/actions/profile-update";
 import { deleteTemporaryImage } from "@/actions/delete-temporary-image";
 import { User } from "@/generated/prisma";
+import { toast } from "sonner";
 
 export function ProfileDialogContent({ user }: { user: User }) {
   const [open, setOpen] = useState(false);
@@ -119,6 +120,7 @@ export function ProfileDialogContent({ user }: { user: User }) {
         } catch (error) {
           console.error("Error during image upload:", error);
           setLoading(false);
+          toast.error("Failed to upload image");
           return;
         }
       }
@@ -131,13 +133,16 @@ export function ProfileDialogContent({ user }: { user: User }) {
       const result = await updateProfile(formData);
 
       if (result.error) {
-        throw new Error(result.error);
+        toast.error(result.error);
+        return;
       }
 
+      toast.success(result.success);
       setSelectedFileForUpload(null);
       setOpen(false);
     } catch (error) {
       console.error("Error updating profile:", error);
+      toast.error("Failed to update profile");
     } finally {
       setLoading(false);
     }
