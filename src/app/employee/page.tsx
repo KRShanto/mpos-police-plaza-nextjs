@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { getUser } from "@/lib/auth";
-import EmployeeClientPage from "./employee-client";
+import EmployeeClientPage, { EmployeeType } from "./employee-client";
 
 export default async function Employee() {
   const user = await getUser();
@@ -16,5 +16,5 @@ export default async function Employee() {
     },
   });
 
-  return <EmployeeClientPage employees={employees} />;
+  return <EmployeeClientPage employees={employees as EmployeeType[]} />;
 }

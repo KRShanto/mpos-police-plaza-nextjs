@@ -127,7 +127,7 @@ export function EmployeeModal({
           <form
             ref={formRef}
             onSubmit={handleSubmit}
-            className="space-y-4 h-[44vh] overflow-y-auto"
+            className="space-y-4 h-[44vh] overflow-y-auto p-3"
           >
             <div className="flex gap-4">
               <div

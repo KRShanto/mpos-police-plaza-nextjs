@@ -40,7 +40,7 @@ export default function EmployeeClientPage({
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold text-[#1C494C]">Employees</h2>
+        <h2 className="text-2xl font-bold">Employees</h2>
         <Button
           onClick={() => {
             setModalMode("create");
