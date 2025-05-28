@@ -6,7 +6,7 @@ import { LoyaltySettings } from "./loyalty/loyalty";
 import { ReceiptSettings } from "./receipt/receipt";
 import { BalanceSettings } from "./balance/balance";
 import { PersonalizationSettings } from "./personalization/personalization";
-import Link from "next/link";
+import { ChangePasswordSettings } from "./change-password/change-password";
 
 export default async function Settings() {
   return (
@@ -21,14 +21,7 @@ export default async function Settings() {
           <ReceiptSettings />
           <BalanceSettings />
           <PersonalizationSettings />
-          <Link href="/settings/change-password">
-            <div className="w-full bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow cursor-pointer flex flex-col items-center justify-center">
-              <div className="text-4xl mb-3">🔑</div>
-              <h2 className="text-sm font-semibold text-gray-800 text-center">
-                Change Password
-              </h2>
-            </div>
-          </Link>
+          <ChangePasswordSettings />
         </div>
       </div>
     </div>
