@@ -9,9 +9,7 @@ const nextConfig = {
     ],
   },
   experimental: {
-    outputFileTracingExcludes: {
-      "*": ["./generated/prisma/**/*"],
-    },
+    outputFileTracingIgnores: ["./generated/prisma/**/*"],
   },
 };
 
