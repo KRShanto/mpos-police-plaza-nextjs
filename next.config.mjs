@@ -8,6 +8,11 @@ const nextConfig = {
       },
     ],
   },
+  experimental: {
+    outputFileTracingExcludes: {
+      "*": ["./generated/prisma/**/*"],
+    },
+  },
 };
 
 export default nextConfig;
