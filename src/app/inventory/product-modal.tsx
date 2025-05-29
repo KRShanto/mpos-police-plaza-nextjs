@@ -206,6 +206,7 @@ export function ProductModal({
           name={label.toLowerCase()}
           defaultValue={value || ""}
           type={typeof value === "number" ? "number" : "text"}
+          step={["cost", "sell"].includes(label.toLowerCase()) ? "0.01" : "1"}
           className="mt-1"
           required={[
             "name",
