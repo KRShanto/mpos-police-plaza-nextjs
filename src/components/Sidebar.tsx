@@ -52,7 +52,7 @@ const cashierNavItems = [
   {
     title: "Customer Management",
     icon: UserCircle,
-    href: "/customer",
+    href: "/cashier/customer",
   },
   {
     title: "Due Balance",
