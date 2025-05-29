@@ -10,7 +10,7 @@ interface UpdateDiscountInput {
   value: number;
   startDate: Date;
   endDate: Date;
-  productId: string;
+  productIds: string[];
 }
 
 export async function updateDiscount(data: UpdateDiscountInput) {
@@ -27,7 +27,12 @@ export async function updateDiscount(data: UpdateDiscountInput) {
         value: data.value,
         startDate: data.startDate,
         endDate: data.endDate,
-        productId: data.productId,
+        discountProducts: {
+          deleteMany: {},
+          create: data.productIds.map((productId) => ({
+            productId,
+          })),
+        },
       },
     });
 

@@ -9,25 +9,33 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Trash2, X } from "lucide-react";
-import { useState, useRef } from "react";
+import { Loader2, Trash2, X, Check, ChevronsUpDown } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
 import { Discount, Product } from "@/generated/prisma";
 import { toast } from "sonner";
 import { createDiscount } from "@/actions/create-discount";
 import { updateDiscount } from "@/actions/update-discount";
 import { deleteDiscount } from "@/actions/delete-discount";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Command,
+  CommandInput,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 interface AddEditDiscountDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  discount: (Discount & { product: Product }) | null;
+  discount: (Discount & { discountProducts: { product: Product }[] }) | null;
   products: Product[];
 }
 
@@ -39,9 +47,20 @@ export function AddEditDiscountDialog({
 }: AddEditDiscountDialogProps) {
   const [loading, setLoading] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
-  const [selectedProductId, setSelectedProductId] = useState<string>(
-    discount?.productId || ""
+  const [selectedProductIds, setSelectedProductIds] = useState<string[]>(
+    discount?.discountProducts.map((dp) => dp.product.id) || []
   );
+  const [commandOpen, setCommandOpen] = useState(false);
+
+  useEffect(() => {
+    if (discount) {
+      setSelectedProductIds(
+        discount.discountProducts.map((dp) => dp.product.id)
+      );
+    } else {
+      setSelectedProductIds([]);
+    }
+  }, [discount]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -60,8 +79,8 @@ export function AddEditDiscountDialog({
         return;
       }
 
-      if (!selectedProductId) {
-        toast.error("Please select a product");
+      if (selectedProductIds.length === 0) {
+        toast.error("Please select at least one product");
         return;
       }
 
@@ -72,14 +91,14 @@ export function AddEditDiscountDialog({
             value,
             startDate,
             endDate,
-            productId: selectedProductId,
+            productIds: selectedProductIds,
           })
         : await createDiscount({
             name,
             value,
             startDate,
             endDate,
-            productId: selectedProductId,
+            productIds: selectedProductIds,
           });
 
       if (result.error) {
@@ -161,53 +180,148 @@ export function AddEditDiscountDialog({
             </div>
 
             <div>
-              <Label htmlFor="product">Product</Label>
-              <Select
-                value={selectedProductId}
-                onValueChange={setSelectedProductId}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a product" />
-                </SelectTrigger>
-                <SelectContent>
-                  {products.map((product) => (
-                    <SelectItem key={product.id} value={product.id}>
-                      {product.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label>Products</Label>
+              <Popover open={commandOpen} onOpenChange={setCommandOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={commandOpen}
+                    className="w-full justify-between"
+                  >
+                    {selectedProductIds.length > 0
+                      ? `${selectedProductIds.length} product${
+                          selectedProductIds.length === 1 ? "" : "s"
+                        } selected`
+                      : "Select products..."}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0" align="start">
+                  <Command>
+                    <CommandInput
+                      placeholder="Search products..."
+                      className="border-0 focus:ring-0"
+                    />
+                    <CommandEmpty>No products found.</CommandEmpty>
+                    <CommandGroup className="max-h-[200px] overflow-y-auto">
+                      {products.map((product) => (
+                        <CommandItem
+                          key={product.id}
+                          onSelect={() => {
+                            setSelectedProductIds((prev) =>
+                              prev.includes(product.id)
+                                ? prev.filter((id) => id !== product.id)
+                                : [...prev, product.id]
+                            );
+                          }}
+                          className={cn(
+                            "flex items-center gap-2",
+                            selectedProductIds.includes(product.id) &&
+                              "bg-accent"
+                          )}
+                        >
+                          <div className="relative w-8 h-8 rounded-md overflow-hidden bg-gray-100 flex-shrink-0">
+                            {product.imageUrl ? (
+                              <Image
+                                src={product.imageUrl}
+                                alt={product.name}
+                                fill
+                                className="object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400 text-xs">
+                                No img
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="truncate">{product.name}</div>
+                            <div className="text-xs text-gray-500">
+                              {product.barcode}
+                            </div>
+                          </div>
+                          <Check
+                            className={cn(
+                              "ml-2 h-4 w-4 flex-shrink-0",
+                              selectedProductIds.includes(product.id)
+                                ? "opacity-100"
+                                : "opacity-0"
+                            )}
+                          />
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+              {selectedProductIds.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {selectedProductIds.map((id) => {
+                    const product = products.find((p) => p.id === id);
+                    if (!product) return null;
+                    return (
+                      <Badge
+                        key={id}
+                        variant="secondary"
+                        className="cursor-pointer pl-1"
+                        onClick={() =>
+                          setSelectedProductIds((prev) =>
+                            prev.filter((pid) => pid !== id)
+                          )
+                        }
+                      >
+                        <div className="relative w-5 h-5 rounded overflow-hidden mr-1">
+                          {product.imageUrl ? (
+                            <Image
+                              src={product.imageUrl}
+                              alt={product.name}
+                              fill
+                              className="object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400 text-[8px]">
+                              No img
+                            </div>
+                          )}
+                        </div>
+                        {product.name}
+                        <X className="ml-1 h-3 w-3" />
+                      </Badge>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="startDate">Start Date</Label>
-                <Input
-                  id="startDate"
-                  name="startDate"
-                  type="date"
-                  defaultValue={
-                    discount?.startDate
-                      ? new Date(discount.startDate).toISOString().split("T")[0]
-                      : ""
-                  }
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="endDate">End Date</Label>
-                <Input
-                  id="endDate"
-                  name="endDate"
-                  type="date"
-                  defaultValue={
-                    discount?.endDate
-                      ? new Date(discount.endDate).toISOString().split("T")[0]
-                      : ""
-                  }
-                  required
-                />
-              </div>
+            <div>
+              <Label htmlFor="startDate">Start Date</Label>
+              <Input
+                id="startDate"
+                name="startDate"
+                type="date"
+                defaultValue={
+                  discount?.startDate
+                    ? new Date(discount.startDate).toISOString().split("T")[0]
+                    : ""
+                }
+                required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="endDate">End Date</Label>
+              <Input
+                id="endDate"
+                name="endDate"
+                type="date"
+                defaultValue={
+                  discount?.endDate
+                    ? new Date(discount.endDate).toISOString().split("T")[0]
+                    : ""
+                }
+                required
+              />
             </div>
           </form>
 

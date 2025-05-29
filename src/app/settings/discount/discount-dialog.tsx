@@ -13,9 +13,14 @@ import { useState } from "react";
 import { AddEditDiscountDialog } from "./add-edit-discount-dialog";
 import { Discount, Product } from "@/generated/prisma";
 import { format } from "date-fns";
+import Image from "next/image";
 
 interface DiscountDialogContentProps {
-  discounts: (Discount & { product: Product })[];
+  discounts: (Discount & {
+    discountProducts: {
+      product: Product;
+    }[];
+  })[];
   products: Product[];
 }
 
@@ -26,7 +31,12 @@ export function DiscountDialogContent({
   const [open, setOpen] = useState(false);
   const [addDiscountOpen, setAddDiscountOpen] = useState(false);
   const [selectedDiscount, setSelectedDiscount] = useState<
-    (Discount & { product: Product }) | null
+    | (Discount & {
+        discountProducts: {
+          product: Product;
+        }[];
+      })
+    | null
   >(null);
 
   const handleModalOpenChange = (isOpen: boolean) => {
@@ -78,9 +88,37 @@ export function DiscountDialogContent({
                           <p className="text-sm text-gray-500">
                             {discount.value}%
                           </p>
-                          <p className="text-sm text-gray-500">
-                            Product: {discount.product.name}
-                          </p>
+                          <div className="mt-2">
+                            <div className="text-xs text-gray-500 mb-1">
+                              Products:
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              {discount.discountProducts.map(({ product }) => (
+                                <div
+                                  key={product.id}
+                                  className="flex items-center gap-1 bg-white rounded-md p-1 border text-sm"
+                                >
+                                  <div className="relative w-6 h-6 rounded overflow-hidden bg-gray-100 flex-shrink-0">
+                                    {product.imageUrl ? (
+                                      <Image
+                                        src={product.imageUrl}
+                                        alt={product.name}
+                                        fill
+                                        className="object-cover"
+                                      />
+                                    ) : (
+                                      <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400 text-[8px]">
+                                        No img
+                                      </div>
+                                    )}
+                                  </div>
+                                  <span className="text-gray-600 truncate max-w-[100px]">
+                                    {product.name}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
                         </div>
                         <div className="text-right text-sm text-gray-500">
                           <div>

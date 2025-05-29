@@ -122,10 +122,11 @@ model Product {
   updatedAt      DateTime @updatedAt @map("updated_at")
 
   // Relations
-  category     Category?     @relation(fields: [categoryId], references: [id])
-  discounts    Discount[]
-  invoiceItems InvoiceItem[]
-  organization Organization  @relation(fields: [organizationId], references: [id])
+  category        Category?         @relation(fields: [categoryId], references: [id])
+  discounts       Discount[]
+  invoiceItems    InvoiceItem[]
+  organization    Organization      @relation(fields: [organizationId], references: [id])
+  DiscountProduct DiscountProduct[]
 
   @@map("products")
 }
@@ -171,16 +172,33 @@ model Discount {
   value          Float
   startDate      DateTime @map("start_date")
   endDate        DateTime @map("end_date")
-  productId      String   @map("product_id")
   organizationId String   @map("organization_id")
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")
 
   // Relations
-  product      Product      @relation(fields: [productId], references: [id])
-  organization Organization @relation(fields: [organizationId], references: [id])
+  organization     Organization      @relation(fields: [organizationId], references: [id])
+  discountProducts DiscountProduct[]
+  Product          Product?          @relation(fields: [productId], references: [id])
+  productId        String?
 
   @@map("discounts")
+}
+
+/// Junction table for many-to-many relationship between Discount and Product
+model DiscountProduct {
+  id         String   @id @default(cuid())
+  discountId String   @map("discount_id")
+  productId  String   @map("product_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  discount Discount @relation(fields: [discountId], references: [id], onDelete: Cascade)
+  product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([discountId, productId])
+  @@map("discount_products")
 }
 
 /// Loyalty defines the reward system configuration

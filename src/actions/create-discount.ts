@@ -9,7 +9,7 @@ interface CreateDiscountInput {
   value: number;
   startDate: Date;
   endDate: Date;
-  productId: string;
+  productIds: string[];
 }
 
 export async function createDiscount(data: CreateDiscountInput) {
@@ -25,8 +25,12 @@ export async function createDiscount(data: CreateDiscountInput) {
         value: data.value,
         startDate: data.startDate,
         endDate: data.endDate,
-        productId: data.productId,
         organizationId: user.organization.id,
+        discountProducts: {
+          create: data.productIds.map((productId) => ({
+            productId,
+          })),
+        },
       },
     });
 
