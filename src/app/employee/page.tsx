@@ -1,20 +1,33 @@
 import { prisma } from "@/lib/db";
 import { getUser } from "@/lib/auth";
-import EmployeeClientPage, { EmployeeType } from "./employee-client";
+import EmployeeClientPage from "./employee-client";
 
 export default async function Employee() {
   const user = await getUser();
-  const employees = await prisma.organizationUser.findMany({
+  const employees = await prisma.employee.findMany({
     where: {
       organizationId: user?.organization.id,
     },
-    include: {
-      user: true,
-    },
     orderBy: {
-      createdAt: "asc",
+      createdAt: "desc",
+    },
+    select: {
+      id: true,
+      employeeId: true,
+      name: true,
+      email: true,
+      imageUrl: true,
+      dateOfBirth: true,
+      gender: true,
+      address: true,
+      phone: true,
+      age: true,
+      dateOfHire: true,
+      jobTitle: true,
+      workSchedule: true,
+      salary: true,
     },
   });
 
-  return <EmployeeClientPage employees={employees as EmployeeType[]} />;
+  return <EmployeeClientPage employees={employees} />;
 }

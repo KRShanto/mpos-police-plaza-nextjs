@@ -6,16 +6,15 @@ import { EmployeeModal } from "./employee-modal";
 
 export type EmployeeType = {
   id: string;
-  user: {
-    name: string;
-    imageUrl: string;
-    dateOfBirth: Date;
-    gender: string;
-    address: string;
-    phone: string;
-    age: number;
-    email: string;
-  };
+  employeeId: string;
+  name: string;
+  email: string;
+  imageUrl: string | null;
+  dateOfBirth: Date | null;
+  gender: string | null;
+  address: string | null;
+  phone: string | null;
+  age: number | null;
   dateOfHire: Date;
   jobTitle: string;
   workSchedule: string;
@@ -94,19 +93,15 @@ export default function EmployeeClientPage({
                   }}
                 >
                   <td className="px-4 py-3 whitespace-nowrap">
-                    {emp.id.slice(-4)}
+                    {emp.employeeId}
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap">{emp.name}</td>
+                  <td className="px-4 py-3 whitespace-nowrap">{emp.email}</td>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    {emp.phone || "-"}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
-                    {emp.user.name}
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    {emp.user.email}
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    {emp.user.phone || "-"}
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    {emp.user.age ?? "-"}
+                    {emp.age ?? "-"}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     {emp.salary.toLocaleString()}
