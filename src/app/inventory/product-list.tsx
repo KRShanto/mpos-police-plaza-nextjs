@@ -42,7 +42,7 @@ export function ProductList({ products }: ProductListProps) {
               <div className="text-sm text-gray-600 mb-1">{product.brand}</div>
               <div className="flex justify-between items-center">
                 <div className="font-semibold text-fg-primary">
-                  {product.sell} TK
+                  {product.sell.toLocaleString()} TK
                 </div>
                 <div className="text-sm bg-[#E8F2EF] text-[#1C494C] px-2 py-1 rounded">
                   {product.quantity} Left
