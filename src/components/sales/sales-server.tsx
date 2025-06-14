@@ -2,7 +2,8 @@ import { prisma } from "@/lib/db";
 import { getUser } from "@/lib/auth";
 import { SalesClientPage } from "./sales-client";
 
-const INITIAL_ITEMS = 50; // Load more initially for Load More functionality
+// Load more initially for Load More functionality
+const INITIAL_ITEMS = 50;
 
 export async function SalesServer() {
   const user = await getUser();
@@ -12,7 +13,7 @@ export async function SalesServer() {
       where: {
         organizationId: user?.organization.id,
         quantity: {
-          gt: 0, // Only show products with stock
+          gt: 0,
         },
       },
       include: {
@@ -34,7 +35,7 @@ export async function SalesServer() {
     <SalesClientPage
       initialProducts={products}
       categories={categories}
-      totalPages={1} // Not used anymore with Load More
+      totalPages={1}
     />
   );
 }

@@ -26,7 +26,7 @@ export function SalesHeader({
     <div className="space-y-4 mb-4">
       {/* Customer Information Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Customer Info - Stacked vertically */}
+        {/* Customer Info */}
         <div className="space-y-3">
           <div className="space-y-2">
             <Label htmlFor="customer-name" className="text-sm font-medium">
@@ -59,7 +59,7 @@ export function SalesHeader({
           </div>
         </div>
 
-        {/* Smaller Reserved Box */}
+        {/* Reserved Box */}
         <div className="space-y-2">
           <Label className="text-sm font-medium opacity-60">
             Reserved Area
@@ -70,11 +70,11 @@ export function SalesHeader({
         </div>
       </div>
 
-      {/* Product Controls - Only Search now */}
+      {/* Product Controls */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <h1 className="text-xl font-semibold">Product List</h1>
 
-        {/* Search Only */}
+        {/* Search */}
         <div className="relative w-full sm:w-64">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           <Input

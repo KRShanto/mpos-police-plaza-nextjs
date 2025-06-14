@@ -119,7 +119,7 @@ export function SalesClientPage({ initialProducts }: SalesClientPageProps) {
 
   return (
     <div className="flex flex-col lg:flex-row h-[calc(100vh-7rem)] overflow-hidden">
-      {/* Left Side - Products (Yellow Area - BIGGER) */}
+      {/* Left Side - Products */}
       <div className="flex-1 flex flex-col min-h-0">
         {/* Header - Compact */}
         <div className="flex-shrink-0 p-3 lg:p-4">
@@ -131,7 +131,7 @@ export function SalesClientPage({ initialProducts }: SalesClientPageProps) {
           />
         </div>
 
-        {/* Products Area - INCREASED HEIGHT, only this scrolls */}
+        {/* Products Area */}
         <div className="flex-1 min-h-0 px-3 lg:px-4">
           {displayedProducts.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-gray-500">
@@ -173,7 +173,7 @@ export function SalesClientPage({ initialProducts }: SalesClientPageProps) {
         </div>
       </div>
 
-      {/* Right Side - Cart (Red Area - will be made SMALLER) */}
+      {/* Right Side - Cart */}
       <div className="w-full lg:w-80 border-t lg:border-t-0 lg:border-l border-gray-200 h-full">
         <CartSection
           cartItems={cartItems}

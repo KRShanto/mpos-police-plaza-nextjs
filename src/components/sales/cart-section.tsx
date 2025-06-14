@@ -82,7 +82,7 @@ export function CartSection({
         <h2 className="text-lg font-semibold">Detail Items</h2>
       </div>
 
-      {/* Cart Items - BIGGER - takes most space and scrollable */}
+      {/* Cart Items */}
       <div className="flex-1 min-h-0">
         <div className="h-full overflow-y-auto p-3">
           {cartItems.length === 0 ? (
@@ -151,9 +151,9 @@ export function CartSection({
         </div>
       </div>
 
-      {/* Bottom sections - SMALLER HEIGHT by reducing spacing */}
+      {/* Bottom sections */}
       <div className="flex-shrink-0">
-        {/* Date Section - Reduced padding */}
+        {/* Date Section */}
         <div className="px-3 py-2 border-t border-gray-200">
           <div className="space-y-1">
             <Label htmlFor="date" className="text-sm font-medium">
@@ -169,7 +169,7 @@ export function CartSection({
           </div>
         </div>
 
-        {/* Payment Method - Reduced padding */}
+        {/* Payment Method */}
         <div className="px-3 py-2 border-t border-gray-200">
           <div className="space-y-1">
             <h3 className="font-semibold text-sm">Payment Method</h3>
@@ -190,7 +190,7 @@ export function CartSection({
           </div>
         </div>
 
-        {/* Payment Calculations - Reduced padding and spacing */}
+        {/* Payment Calculations */}
         <div className="px-3 py-2 border-t border-gray-200">
           <div className="space-y-1">
             <h3 className="font-semibold text-sm">Detail Payment</h3>
@@ -219,7 +219,7 @@ export function CartSection({
           </div>
         </div>
 
-        {/* Confirm Button - Reduced padding */}
+        {/* Confirm Button */}
         <div className="px-3 py-2 border-t border-gray-200">
           <Button
             onClick={handleConfirmOrder}
