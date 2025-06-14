@@ -4,27 +4,41 @@ import { getUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 
-export async function deleteEmployee(id: string) {
+export async function deleteEmployee(userId: string) {
   try {
     const user = await getUser();
     if (!user?.organization) {
       return { error: "Unauthorized" };
     }
 
-    const employee = await prisma.employee.findFirst({
+    // Check if the employee belongs to the current organization
+    const orgUser = await prisma.organizationUser.findFirst({
       where: {
-        id,
+        userId,
         organizationId: user.organization.id,
       },
     });
 
-    if (!employee) {
-      return { error: "Employee not found" };
+    if (!orgUser) {
+      return { error: "Employee not found or unauthorized" };
     }
 
-    await prisma.employee.delete({
-      where: { id },
+    // Delete the organization user relationship first
+    await prisma.organizationUser.delete({
+      where: { id: orgUser.id },
     });
+
+    // Check if the user has other organization relationships
+    const otherOrgRelations = await prisma.organizationUser.findMany({
+      where: { userId },
+    });
+
+    // If no other relationships exist, delete the user
+    if (otherOrgRelations.length === 0) {
+      await prisma.user.delete({
+        where: { id: userId },
+      });
+    }
 
     revalidatePath("/employee");
 

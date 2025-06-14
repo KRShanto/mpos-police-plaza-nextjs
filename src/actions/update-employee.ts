@@ -19,39 +19,54 @@ interface UpdateEmployeeData {
   salary: number;
 }
 
-export async function updateEmployee(id: string, data: UpdateEmployeeData) {
+export async function updateEmployee(userId: string, data: UpdateEmployeeData) {
   try {
     const user = await getUser();
     if (!user?.organization) {
       return { error: "Unauthorized" };
     }
 
-    const employee = await prisma.employee.findFirst({
+    // Check if the employee belongs to the current organization
+    const orgUser = await prisma.organizationUser.findFirst({
       where: {
-        id,
+        userId,
         organizationId: user.organization.id,
       },
     });
 
-    if (!employee) {
-      return { error: "Employee not found" };
+    if (!orgUser) {
+      return { error: "Employee not found or unauthorized" };
     }
 
-    const updatedEmployee = await prisma.employee.update({
-      where: { id },
+    // Update user
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
       data: {
-        ...data,
-        organization: {
-          connect: {
-            id: user.organization.id,
-          },
-        },
+        name: data.name,
+        email: data.email,
+        imageUrl: data.imageUrl,
+        dateOfBirth: data.dateOfBirth,
+        gender: data.gender,
+        address: data.address,
+        phone: data.phone,
+        age: data.age,
+      },
+    });
+
+    // Update organization user relationship with employee details
+    await prisma.organizationUser.update({
+      where: { id: orgUser.id },
+      data: {
+        dateOfHire: data.dateOfHire,
+        jobTitle: data.jobTitle,
+        workSchedule: data.workSchedule,
+        salary: data.salary,
       },
     });
 
     revalidatePath("/employee");
 
-    return { success: "Employee updated successfully", data: updatedEmployee };
+    return { success: "Employee updated successfully", data: updatedUser };
   } catch (error) {
     console.error("Error updating employee:", error);
     return { error: "Failed to update employee" };

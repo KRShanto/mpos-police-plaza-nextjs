@@ -153,6 +153,9 @@ export function EmployeeModal({
       workSchedule: formData.get("workSchedule")?.toString() || "",
       salary: formData.get("salary") ? Number(formData.get("salary")) : 0,
       imageUrl: uploadedImageUrl || undefined,
+      ...(mode === "create" && {
+        password: formData.get("password")?.toString() || "",
+      }),
     };
 
     console.log("Form Data:", {
@@ -175,6 +178,27 @@ export function EmployeeModal({
     if (!employeeData.salary) validationErrors.push("Salary");
     if (!employeeData.dateOfHire) validationErrors.push("Date of Hire");
 
+    // Validate passwords for create mode
+    if (mode === "create") {
+      const password = formData.get("password")?.toString();
+      const confirmPassword = formData.get("confirmPassword")?.toString();
+
+      if (!password) validationErrors.push("Password");
+      if (!confirmPassword) validationErrors.push("Confirm Password");
+
+      if (password && confirmPassword && password !== confirmPassword) {
+        toast.error("Passwords do not match");
+        setLoading(false);
+        return;
+      }
+
+      if (password && password.length < 6) {
+        toast.error("Password must be at least 6 characters long");
+        setLoading(false);
+        return;
+      }
+    }
+
     if (validationErrors.length > 0) {
       toast.error(
         `Please fill in the following required fields: ${validationErrors.join(
@@ -186,10 +210,19 @@ export function EmployeeModal({
     }
 
     try {
-      const result =
-        mode === "edit" && employee
-          ? await updateEmployee(employee.id, employeeData)
-          : await createEmployee(employeeData);
+      let result;
+      if (mode === "edit" && employee) {
+        // For editing, exclude password from data
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { password: _, ...updateData } =
+          employeeData as typeof employeeData & { password?: string };
+        result = await updateEmployee(employee.id, updateData);
+      } else {
+        // For creating, ensure password is included
+        result = await createEmployee(
+          employeeData as typeof employeeData & { password: string }
+        );
+      }
 
       if (result.error) {
         toast.error(result.error);
@@ -438,6 +471,36 @@ export function EmployeeModal({
                 readOnly={isReadOnly}
               />
             </div>
+
+            {mode === "create" && (
+              <>
+                <div>
+                  <Label htmlFor="password">
+                    Password <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    type="password"
+                    id="password"
+                    name="password"
+                    required
+                    placeholder="Enter password"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="confirmPassword">
+                    Confirm Password <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    type="password"
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    required
+                    placeholder="Confirm password"
+                  />
+                </div>
+              </>
+            )}
           </form>
 
           <div className="grid grid-cols-3 gap-3 pt-4 border-t mt-4 mb-4">
