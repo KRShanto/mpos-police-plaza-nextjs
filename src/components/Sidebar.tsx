@@ -6,15 +6,21 @@ import {
   UserCircle,
   Settings,
   Scale,
+  Home,
 } from "lucide-react";
 import SidebarContent from "./SidebarContent";
 import { AuthUser } from "@/lib/auth";
 
 const adminNavItems = [
   {
+    title: "Dashboard",
+    icon: Home,
+    href: "/",
+  },
+  {
     title: "Sales Summary",
     icon: BarChart3,
-    href: "/",
+    href: "/sales",
   },
   {
     title: "Sales Report",
